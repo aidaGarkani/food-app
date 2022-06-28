@@ -1,35 +1,54 @@
 import { useContext } from 'react';
 
-import MealItemForm from '../Meals/MealItem/MealItems';
-import classes from '../Meals/MealItem/MealItems.module.css';
+import Modal from '../UI/Modal';
+import CartItem from './CartItem';
+import classes from './Cart.module.css';
 import CartContext from '../../store/cart-context';
 
-const MealItem = (props) => {
-    const cartCtx = useContext(CartContext);
+const Cart = (props) => {
+  const cartCtx = useContext(CartContext);
 
-    const price = `$${props.price.toFixed(2)}`;
+  const totalAmount = `$${cartCtx.totalAmount.toFixed(2)}`;
+  const hasItems = cartCtx.items.length > 0;
 
-    const addToCartHandler = (amount) => {
-        cartCtx.addItem({
-            id: props.id,
-            name: props.name,
-            amount: amount,
-            price: props.price,
-        });
-    };
+  const cartItemRemoveHandler = (id) => {
+    cartCtx.removeItem(id);
+  };
 
-    return (
-        <li className={classes.meal}>
-            <div>
-                <h3>{props.name}</h3>
-                <div className={classes.description}>{props.description}</div>
-                <div className={classes.price}>{price}</div>
-            </div>
-            <div>
-                <MealItemForm id={props.id} onAddToCart={addToCartHandler} />
-            </div>
-        </li>
-    );
+  const cartItemAddHandler = (item) => {
+    cartCtx.addItem(item);
+  };
+
+  const cartItems = (
+    <ul className={classes['cart-items']}>
+      {cartCtx.items.map((item) => (
+        <CartItem
+          key={item.id}
+          name={item.name}
+          amount={item.amount}
+          price={item.price}
+          onRemove={cartItemRemoveHandler.bind(null, item.id)}
+          onAdd={cartItemAddHandler.bind(null, item)}
+        />
+      ))}
+    </ul>
+  );
+
+  return (
+    <Modal onClose={props.onClose}>
+      {cartItems}
+      <div className={classes.total}>
+        <span>Total Amount</span>
+        <span>{totalAmount}</span>
+      </div>
+      <div className={classes.actions}>
+        <button className={classes['button--alt']} onClick={props.onClose}>
+          Close
+        </button>
+        {hasItems && <button className={classes.button}>Order</button>}
+      </div>
+    </Modal>
+  );
 };
 
-export default MealItem;
+export default Cart;
